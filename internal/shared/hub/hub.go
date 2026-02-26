@@ -11,11 +11,11 @@ import (
 )
 
 type Room struct {
-	conns  map[int]*websocket.Conn
-	mu     sync.Mutex
-	ch     chan []byte
-	ctx    context.Context
-	cancel context.CancelFunc
+	conns        map[int]*websocket.Conn
+	mu           sync.Mutex
+	ch           chan []byte
+	ctx          context.Context
+	cancel       context.CancelFunc
 	cleanupTimer *time.Timer
 }
 
@@ -56,25 +56,25 @@ func (r *Room) Add(userID int, conn *websocket.Conn) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if r.cleanupTimer != nil {
-        r.cleanupTimer.Stop()
-        r.cleanupTimer = nil
-    }
+		r.cleanupTimer.Stop()
+		r.cleanupTimer = nil
+	}
 	r.conns[userID] = conn
 }
 
-func (r *Room) Remove(userID int,roomID int,m *Manager)  {
+func (r *Room) Remove(userID int, roomID int, m *Manager) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	delete(r.conns, userID)
 	isEmpty := len(r.conns) == 0
 
-	if isEmpty{
-		r.cleanupTimer=time.AfterFunc(10*time.Second,func() {
+	if isEmpty {
+		r.cleanupTimer = time.AfterFunc(10*time.Second, func() {
 			r.mu.Lock()
-			currentCount:=len(r.conns)
+			currentCount := len(r.conns)
 			r.mu.Unlock()
 
-			if currentCount==0{
+			if currentCount == 0 {
 				m.Delete(roomID)
 				log.Printf("[INFO] Room %d officially stopped and cleared from memory", roomID)
 			}
@@ -111,4 +111,21 @@ func (r *Room) Snapshot() map[int]*websocket.Conn {
 
 func (r *Room) Channel() chan []byte     { return r.ch }
 func (r *Room) Context() context.Context { return r.ctx }
-func (r *Room) Done() <-chan struct{} { return r.ctx.Done() }
+func (r *Room) Done() <-chan struct{}    { return r.ctx.Done() }
+
+func (r *Room) GetOnlineCount() int {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return len(r.conns)
+}
+
+func (m *Manager) GetOnlineCount(roomID int) int {
+	m.hubsMu.Lock()
+	room, exists := m.rooms[roomID]
+	m.hubsMu.Unlock()
+
+	if !exists {
+		return 0
+	}
+	return room.GetOnlineCount()
+}

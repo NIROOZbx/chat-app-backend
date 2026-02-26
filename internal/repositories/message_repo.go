@@ -3,6 +3,7 @@ package repositories
 import (
 	"chat-app/internal/models"
 
+
 	"github.com/jmoiron/sqlx"
 )
 
@@ -36,7 +37,7 @@ func (r *messageRepo) GetByRoomID(roomID, limit, offset int) ([]models.Message, 
 	var messages []models.Message
 	query := `
         SELECT 
-            m.id, m.room_id, m.user_id, m.content, m.created_at, u.user_name
+        m.id, m.room_id, m.user_id, m.content, m.created_at, u.user_name
         FROM messages AS m
         JOIN users AS u ON m.user_id = u.id
         WHERE m.room_id = $1
@@ -44,10 +45,11 @@ func (r *messageRepo) GetByRoomID(roomID, limit, offset int) ([]models.Message, 
         LIMIT $2 OFFSET $3
     `
 
-  
     
     if err := r.db.Select(&messages, query, roomID, limit, offset); err != nil {
         return nil, err
     }
+
+    
     return messages, nil
 }

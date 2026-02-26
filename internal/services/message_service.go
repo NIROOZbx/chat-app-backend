@@ -7,6 +7,7 @@ import (
 	"chat-app/internal/shared/pubsub"
 	"context"
 	"encoding/json"
+	
 	"strconv"
 	"time"
 
@@ -66,11 +67,12 @@ func (s *messageService) GetMessages(ctx context.Context, roomID, limit, page in
 	redisKey := "room:" + strconv.Itoa(roomID) + ":p:" + strconv.Itoa(page) + ":l:" + strconv.Itoa(limit)
 	bytes, err := s.redis.Get(ctx, redisKey).Result()
 
-	if err == nil {
+	if err == redis.Nil {
 		var cachedData []dtos.MessageResponse
 		if unmarshalErr := json.Unmarshal([]byte(bytes), &cachedData); unmarshalErr == nil {
 			return cachedData, nil
 		}
+		
 	}
 
 	offset := (page - 1) * limit
@@ -78,6 +80,7 @@ func (s *messageService) GetMessages(ctx context.Context, roomID, limit, page in
 	if err != nil {
 		return nil, err
 	}
+
 
 	var resp []dtos.MessageResponse
 	for _, m := range messages {

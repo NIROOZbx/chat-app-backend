@@ -3,6 +3,7 @@ package services
 import (
 	"chat-app/internal/models"
 	"chat-app/internal/repositories"
+	"chat-app/internal/shared/hub"
 	"chat-app/internal/shared/request"
 	"context"
 	"errors"
@@ -14,10 +15,12 @@ type Roomservice interface {
 	GetJoinedRooms(userID int) ([]models.Room, error)
 	GetSingleRoom(id int) (*models.Room, error)
 	DeleteRoom(id int) error
+	GetOnlineCount(roomID int) int
 }
 
 type roomService struct {
 	Repo repositories.RoomRepository
+	Hub  *hub.Manager
 }
 
 func (s *roomService) CreateRoom(ctx context.Context, req request.CreateRoomRequest, creatorID int, img string) (*models.Room, error) {
@@ -57,6 +60,10 @@ func (r *roomService) GetSingleRoom(id int) (*models.Room, error) {
 func (r *roomService) DeleteRoom(id int) error {
 	return r.Repo.DeleteRoom(id)
 }
-func NewRoomService(repo repositories.RoomRepository) Roomservice {
-	return &roomService{Repo: repo}
+
+func (s *roomService) GetOnlineCount(roomID int) int {
+	return s.Hub.GetOnlineCount(roomID)
+}
+func NewRoomService(repo repositories.RoomRepository, hub *hub.Manager) Roomservice {
+	return &roomService{Repo: repo, Hub: hub}
 }

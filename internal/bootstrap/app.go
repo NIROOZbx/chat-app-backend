@@ -47,13 +47,12 @@ func StartUp(cfg *config.Config) *App {
 		WriteTimeout: cfg.Server.Timeout,
 	}
 
-	roomRepo := repositories.NewRoomRepo(db)
-	roomService := services.NewRoomService(roomRepo)
-	roomHandler := handlers.NewRoomHandler(roomService, l, cfg.Cloudinary)
-
 	publisher := pubsub.NewPubSub(client)
-
 	manager := hub.NewManager(client)
+
+	roomRepo := repositories.NewRoomRepo(db)
+	roomService := services.NewRoomService(roomRepo, manager)
+	roomHandler := handlers.NewRoomHandler(roomService, l, cfg.Cloudinary)
 
 	messageRepo := repositories.NewMessageRepo(db)
 	messageService := services.NewMessageService(messageRepo, publisher, client)

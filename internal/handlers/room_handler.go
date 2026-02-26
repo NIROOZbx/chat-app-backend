@@ -119,7 +119,11 @@ func (r *RoomHandler) GetSingleRoom(c *gin.Context) {
 		return
 	}
 
-	response.OK(c, response.SuccessMsgFetched, room)
+	onlineCount := r.Service.GetOnlineCount(id)
+	response.OK(c, response.SuccessMsgFetched, gin.H{
+		"room":         room,
+		"online_count": onlineCount,
+	})
 
 }
 
