@@ -8,5 +8,5 @@ type User struct {
 	ProfileImage string    `db:"profile_image" json:"ProfileImage"`
 	IsOnline     bool      `db:"is_online" json:"IsOnline"`
 	LastSeen     time.Time `db:"last_seen" json:"LastSeen"`
-	CreatedAt    time.Time `db:"createdAt" json:"CreatedAt"`
+	CreatedAt    time.Time `db:"created_at" json:"CreatedAt"`
 }
