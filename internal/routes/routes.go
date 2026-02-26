@@ -10,6 +10,12 @@ import (
 
 func SetupRoutes(r *gin.Engine, roomHandle *handlers.RoomHandler, joinHandle *handlers.JoinRoomHandler, userHandle *handlers.CreateUser, store *session.Store, ws *handlers.WSHandler, messageHandler *handlers.MessageHandler) {
 
+r.GET("/", func(c *gin.Context) {
+    c.JSON(200, gin.H{
+        "status":  "healthy",
+        "message": "Chat Backend is running",
+    })
+})
 	v1 := r.Group("/api/v1")
 	{
 
