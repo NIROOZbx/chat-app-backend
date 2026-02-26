@@ -1,0 +1,17 @@
+server:
+  port: "8080"
+  timeout: "5s"
+  mode: "debug"
+
+database:
+  dsn: "${DATABASE_URL}"
+  max_open_conns: 20
+  max_idle_conns: 10
+  conn_max_lifetime: "30m"
+  conn_max_idle_time: "5m"
+
+redis:
+  url: "${REDIS_URL}"
+
+cloudinary:
+  url: "${CLOUDINARY_URL}"

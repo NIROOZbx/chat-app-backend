@@ -1,0 +1,37 @@
+version: '3'
+
+dotenv: ['.env']
+
+vars:
+  DB_URL: '{{.DATABASE_URL}}'
+  MIGRATION_PATH: 'migrations'
+
+
+tasks:
+  migrate-create:
+    desc: Create a new migration file pair
+    cmds:
+      - echo "Creating migration files..."
+      - migrate create -ext sql -dir {{.MIGRATION_PATH}} -seq {{.CLI_ARGS}}
+
+  migrate-down:
+    cmds:
+      - echo "Dropping database schema..."
+      - migrate -path {{.MIGRATION_PATH}} -database "{{.DB_URL}}" down {{.CLI_ARGS}}
+
+  migrate-up:
+    cmds:
+      - echo "Applying database migrations..."
+      - migrate -path {{.MIGRATION_PATH}} -database "{{.DB_URL}}" up
+      - echo "✅ Database is up to date!"
+
+  migrate-force:
+    cmds:
+      - echo "Forcing database migration..."
+      - migrate -path {{.MIGRATION_PATH}} -database "{{.DB_URL}}" force {{.CLI_ARGS}}
+
+  run:
+    deps: ["migrate-up"]
+    cmds:
+      - echo "Starting go server"
+      - go run cmd/api/main.go
