@@ -12,6 +12,10 @@ import (
 func SessionMiddleware(store *session.Store) gin.HandlerFunc {
 
 	return func(c *gin.Context) {
+		if c.Request.Method == http.MethodOptions {
+			c.Next()
+			return
+		}
 
 		sessionID, err := c.Cookie("session_id")
 
