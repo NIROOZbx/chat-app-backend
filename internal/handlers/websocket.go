@@ -6,6 +6,7 @@ import (
 	"chat-app/internal/shared/request"
 	"chat-app/internal/shared/response"
 	"chat-app/internal/shared/utils"
+	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -47,8 +48,8 @@ func (ws *WSHandler) CreateWSConn(c *gin.Context) {
 	}
 	defer conn.Close()
 
-	ws.service.Connect(userName,roomID, userID, conn)
-	defer ws.service.Disconnect(userName,roomID, userID)
+	ws.service.Connect(userName, roomID, userID, conn)
+	defer ws.service.Disconnect(userName, roomID, userID)
 
 	for {
 
@@ -61,7 +62,7 @@ func (ws *WSHandler) CreateWSConn(c *gin.Context) {
 
 		switch msg.Type {
 		case "message.send":
-			_, err := ws.messageService.SendMessage(c.Request.Context(),
+			_, err := ws.messageService.SendMessage(context.Background(),
 				roomID,
 				userID,
 				userName,
@@ -71,7 +72,7 @@ func (ws *WSHandler) CreateWSConn(c *gin.Context) {
 				ws.log.Error("SendMessage: %v", err)
 			}
 		case "room.typing":
-			ws.service.UserTyping(c.Request.Context(), userName, userID, roomID)
+			ws.service.UserTyping(context.Background(), userName, userID, roomID)
 
 		}
 
