@@ -17,46 +17,45 @@ type BaseEvent struct {
 
 type UserJoinedEvent struct {
 	BaseEvent
-	RoomID   int    `json:"room_id"`
-	UserID   int    `json:"user_id"`
-	UserName string `json:"user_name"`
-	Role     string `json:"role"`
+	RoomID   int    `json:"RoomID"`
+	UserID   int    `json:"UserID"`
+	UserName string `json:"UserName"`
+	Role     string `json:"Role"`
 }
 
 type UserLeaveEvent struct {
 	BaseEvent
-	RoomID   int    `json:"room_id"`
-	UserID   int    `json:"user_id"`
-	UserName string `json:"user_name"`
+	RoomID   int    `json:"RoomID"`
+	UserID   int    `json:"UserID"`
+	UserName string `json:"UserName"`
 }
 
 type MessageEvent struct {
 	BaseEvent
-	RoomID    int       `json:"room_id"`
-	UserID    int       `json:"user_id"`
-	UserName  string    `json:"user_name"`
-	Content   string    `json:"content"`
-	MessageID int       `json:"message_id"`
-	SentAt    time.Time `json:"sent_at"`
+	RoomID    int       `json:"RoomID"`
+	UserID    int       `json:"UserID"`
+	UserName  string    `json:"UserName"`
+	Content   string    `json:"Content"`
+	MessageID int       `json:"MessageID"`
+	SentAt    time.Time `json:"SentAt"`
 }
 
 type TypingEvent struct {
 	BaseEvent
-	RoomID   int    `json:"room_id"`
-	UserID   int    `json:"user_id"`
-	UserName string `json:"user_name"`
+	RoomID   int    `json:"RoomID"`
+	UserID   int    `json:"UserID"`
+	UserName string `json:"UserName"`
 }
 
 type UserOfflineEvent struct {
 	BaseEvent
-	RoomID int `json:"room_id"`
-	UserID int `json:"user_id"`
-	UserName string `json:"user_name"`
+	RoomID   int    `json:"RoomID"`
+	UserID   int    `json:"UserID"`
+	UserName string `json:"UserName"`
 }
 type UserOnlineEvent struct {
 	BaseEvent
-	RoomID int `json:"room_id"`
-	UserID int `json:"user_id"`
-	UserName string `json:"user_name"`
-
+	RoomID   int    `json:"RoomID"`
+	UserID   int    `json:"UserID"`
+	UserName string `json:"UserName"`
 }

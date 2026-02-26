@@ -46,7 +46,7 @@ func (s *CreateUser) CreateUserSession(c *gin.Context) {
 	}
 
 	data := &session.Data{
-		UserID:   existingUser.ID,
+		ID:       existingUser.ID,
 		UserName: existingUser.UserName,
 	}
 
@@ -93,7 +93,7 @@ func (s *CreateUser) CreateUser(c *gin.Context) {
 	}
 
 	data := &session.Data{
-		UserID:   resp.ID,
+		ID:       resp.ID,
 		UserName: resp.UserName,
 	}
 

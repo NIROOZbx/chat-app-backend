@@ -35,7 +35,7 @@ func SessionMiddleware(store *session.Store) gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		c.Set("user_id", data.UserID)
+		c.Set("user_id", data.ID)
 		c.Set("user_name", data.UserName)
 		c.Next()
 

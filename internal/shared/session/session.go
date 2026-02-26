@@ -14,8 +14,8 @@ const sessionTTL = 24 * time.Hour
 const keyPrefix = "session:"
 
 type Data struct {
-	UserID   int    `json:"user_id"`
-	UserName string `json:"user_name"`
+	ID       int    `json:"ID"`
+	UserName string `json:"UserName"`
 }
 type Store struct {
 	redis *redis.Client
@@ -58,9 +58,9 @@ func (s *Store) Get(ctx context.Context, sessionID string) (*Data, error) {
 
 	}
 
-	s.redis.Expire(ctx,keyPrefix+sessionID,sessionTTL)
+	s.redis.Expire(ctx, keyPrefix+sessionID, sessionTTL)
 
-	return &data,nil
+	return &data, nil
 }
 
 func CreateStore(r *redis.Client) *Store {
