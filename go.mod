@@ -1,6 +1,6 @@
 module chat-app
 
-go 1.25.1
+go 1.25.0
 
 require (
 	github.com/cloudinary/cloudinary-go/v2 v2.14.1
