@@ -4,6 +4,7 @@ import (
 	"chat-app/internal/shared/response"
 	"chat-app/internal/shared/session"
 	"fmt"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,6 +29,7 @@ func SessionMiddleware(store *session.Store) gin.HandlerFunc {
 			return
 		}
 		if data == nil {
+			c.SetSameSite(http.SameSiteNoneMode)
 			c.SetCookie("session_id", "", -1, "/", "", true, true) // clear stale cookie
 			response.BadRequest(c, nil, "Session expired — join again")
 			c.Abort()

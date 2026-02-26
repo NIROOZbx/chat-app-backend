@@ -49,24 +49,21 @@ func StartUp(cfg *config.Config) *App {
 
 	roomRepo := repositories.NewRoomRepo(db)
 	roomService := services.NewRoomService(roomRepo)
-	roomHandler := handlers.NewRoomHandler(roomService,l,cfg.Cloudinary)
+	roomHandler := handlers.NewRoomHandler(roomService, l, cfg.Cloudinary)
 
-	publisher:=pubsub.NewPubSub(client)
+	publisher := pubsub.NewPubSub(client)
 
-	manager:=hub.NewManager(client)
+	manager := hub.NewManager(client)
 
-	
+	messageRepo := repositories.NewMessageRepo(db)
+	messageService := services.NewMessageService(messageRepo, publisher, client)
+	messageHandler := handlers.NewMessageHandler(messageService, l)
 
-	messageRepo:=repositories.NewMessageRepo(db)
-	messageService:=services.NewMessageService(messageRepo,publisher,client)
-	messageHandler:=handlers.NewMessageHandler(messageService,l)
-
-	wsService:=services.NewWsService(publisher,manager,l)
-	wsHandler:=handlers.NewWSConn(wsService,l,messageService)
-
+	wsService := services.NewWsService(publisher, manager, l)
+	wsHandler := handlers.NewWSConn(wsService, l, messageService)
 
 	joinRepo := repositories.NewJoinRoomRepository(db)
-	joinService := services.NewJoinRoomService(joinRepo,publisher)
+	joinService := services.NewJoinRoomService(joinRepo, publisher)
 	sessionHandle := session.CreateStore(client)
 	joinHandler := handlers.NewJoinRoomHandler(joinService, l, cfg.Cloudinary, sessionHandle)
 
@@ -74,8 +71,7 @@ func StartUp(cfg *config.Config) *App {
 	userService := services.NewUserService(userRepo)
 	userHandler := handlers.NewUserHandler(userService, l, sessionHandle, cfg.Cloudinary)
 
-	routes.SetupRoutes(r, roomHandler, joinHandler, userHandler, sessionHandle,wsHandler,messageHandler)
-	
+	routes.SetupRoutes(r, roomHandler, joinHandler, userHandler, sessionHandle, wsHandler, messageHandler)
 
 	return &App{
 		DB:     db,

@@ -29,18 +29,16 @@ type RedisConfig struct {
 	URL string `mapstructure:"url"`
 }
 
-type CloudinaryConfig struct{
+type CloudinaryConfig struct {
 	URL string `mapstructure:"url"`
 }
 
 type Config struct {
-	Server Server      `mapstructure:"server"`
-	DB     DBConfig    `mapstructure:"database"`
-	Redis  RedisConfig `mapstructure:"redis"`
+	Server     Server           `mapstructure:"server"`
+	DB         DBConfig         `mapstructure:"database"`
+	Redis      RedisConfig      `mapstructure:"redis"`
 	Cloudinary CloudinaryConfig `mapstructure:"cloudinary"`
 }
-
-
 
 func init() {
 	if err := godotenv.Load(); err != nil {
@@ -60,31 +58,28 @@ func LoadConfig(path string) (*Config, error) {
 		return nil, fmt.Errorf("error reading config file: %v", err)
 	}
 
-
 	expandedParams := os.ExpandEnv(string(rawParams))
 
 	v.AutomaticEnv()
-	if err:=v.ReadConfig(strings.NewReader(expandedParams)); err != nil {
+	if err := v.ReadConfig(strings.NewReader(expandedParams)); err != nil {
 		return nil, fmt.Errorf("error reading config file: %v", err)
 	}
 
-
 	var config Config
 
-	if err :=v.Unmarshal(&config); err != nil {
+	if err := v.Unmarshal(&config); err != nil {
 		return nil, fmt.Errorf("error unmarshalling config: %v", err)
 	}
 
-	if err :=config.validate(); err != nil {
-       return nil, fmt.Errorf("config validation failed: %w", err)
-    }
- 
-    return &config,nil
+	if err := config.validate(); err != nil {
+		return nil, fmt.Errorf("config validation failed: %w", err)
+	}
+
+	return &config, nil
 
 }
 
-
-//validate the config 
+//validate the config
 
 func (c *Config) validate() error {
 	if c.Server.Port == "" {

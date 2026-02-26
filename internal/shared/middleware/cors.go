@@ -8,7 +8,7 @@ import (
 func CORSMiddleware() gin.HandlerFunc {
 
 	c := cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173", "http://localhost:5174"},
+		AllowOrigins:     []string{"https://chat-app-frontend-pink-phi.vercel.app/", "http://localhost:5174"},
 		AllowCredentials: true,
 		AllowMethods:     []string{"GET", "PUT", "POST", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "Cookie"},

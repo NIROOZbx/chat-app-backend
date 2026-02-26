@@ -8,6 +8,7 @@ import (
 	"chat-app/internal/shared/response"
 	"chat-app/internal/shared/session"
 	"chat-app/internal/shared/utils"
+	"net/http"
 	"os"
 	"time"
 
@@ -56,6 +57,7 @@ func (s *CreateUser) CreateUserSession(c *gin.Context) {
 		return
 	}
 
+	c.SetSameSite(http.SameSiteNoneMode)
 	c.SetCookie("session_id", newSessionID, int(24*time.Hour.Seconds()), "/", "", true, true)
 
 	response.Created(c, "created user successfully", data)
@@ -101,6 +103,7 @@ func (s *CreateUser) CreateUser(c *gin.Context) {
 		response.InternalServerError(c)
 		return
 	}
+	c.SetSameSite(http.SameSiteNoneMode)
 
 	c.SetCookie("session_id", newSessionID, int(24*time.Hour.Seconds()), "/", "", true, true)
 
