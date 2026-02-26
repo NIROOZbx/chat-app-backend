@@ -63,24 +63,21 @@ func (s *messageService) SendMessage(ctx context.Context, roomID, userID int, us
 }
 
 func (s *messageService) GetMessages(ctx context.Context, roomID, limit, page int) ([]dtos.MessageResponse, error) {
-	redisKey :="room:" + strconv.Itoa(roomID) + ":p:" + strconv.Itoa(page) + ":l:" + strconv.Itoa(limit)
+	redisKey := "room:" + strconv.Itoa(roomID) + ":p:" + strconv.Itoa(page) + ":l:" + strconv.Itoa(limit)
 	bytes, err := s.redis.Get(ctx, redisKey).Result()
 
-
-	if err == redis.Nil {
-	var cachedData []dtos.MessageResponse
-        if unmarshalErr := json.Unmarshal([]byte(bytes), &cachedData); unmarshalErr == nil {
-            return cachedData, nil
-        }
+	if err == nil {
+		var cachedData []dtos.MessageResponse
+		if unmarshalErr := json.Unmarshal([]byte(bytes), &cachedData); unmarshalErr == nil {
+			return cachedData, nil
+		}
 	}
-
 
 	offset := (page - 1) * limit
 	messages, err := s.repo.GetByRoomID(roomID, limit, offset)
 	if err != nil {
 		return nil, err
 	}
-
 
 	var resp []dtos.MessageResponse
 	for _, m := range messages {
@@ -90,15 +87,14 @@ func (s *messageService) GetMessages(ctx context.Context, roomID, limit, page in
 			UserID:    m.UserID,
 			Content:   m.Content,
 			CreatedAt: m.CreatedAt,
-			UserName: m.Username,
+			UserName:  m.Username,
 		})
 	}
-	
-	if jsonData, marshalErr := json.Marshal(resp); marshalErr == nil {
-        ttl := 60 * time.Minute
-        s.redis.Set(ctx, redisKey, jsonData, ttl)
-    }
 
+	if jsonData, marshalErr := json.Marshal(resp); marshalErr == nil {
+		ttl := 60 * time.Minute
+		s.redis.Set(ctx, redisKey, jsonData, ttl)
+	}
 
 	return resp, nil
 }
