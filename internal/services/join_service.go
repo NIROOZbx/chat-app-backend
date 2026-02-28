@@ -10,6 +10,7 @@ import (
 
 type JoinRoomService interface {
 	JoinRoom(ctx context.Context, userID, roomID int) (*dtos.JoinRoomResponse, error)
+	JoinPrivateRoom(ctx context.Context, userID int, inviteCode string) (*dtos.JoinRoomResponse, error)
 	LeaveRoom(ctx context.Context, userName string, roomID, userID int) error
 }
 
@@ -30,6 +31,11 @@ func (s *joinRoom) JoinRoom(ctx context.Context, userID, roomID int) (*dtos.Join
 	if err != nil {
 		return nil, err
 	}
+
+	if room.IsPrivate {
+		return nil, errors.New("cannot join a private room without an invite code")
+	}
+
 	user, err := s.repo.GetUserByID(userID)
 	if err != nil {
 		return nil, err
@@ -61,6 +67,15 @@ func (s *joinRoom) JoinRoom(ctx context.Context, userID, roomID int) (*dtos.Join
 	data := dtos.MapToJoinResponse(user, room)
 
 	return data, nil
+}
+
+func (s *joinRoom) JoinPrivateRoom(ctx context.Context, userID int, inviteCode string) (*dtos.JoinRoomResponse, error) {
+	room, err := s.repo.GetRoomByInviteCode(inviteCode)
+	if err != nil {
+		return nil, errors.New("invalid or expired invite code")
+	}
+
+	return s.JoinRoom(ctx, userID, room.ID)
 }
 
 func (s *joinRoom) LeaveRoom(ctx context.Context, userName string, roomID, userID int) error {

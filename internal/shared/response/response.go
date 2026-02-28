@@ -19,7 +19,7 @@ func Created(c *gin.Context, message string, data interface{}) {
 		"data":    data,
 	})
 }
-func BadRequest(c *gin.Context, data interface{},message string) {
+func BadRequest(c *gin.Context, data interface{}, message string) {
 
 	c.JSON(StatusBadRequest, gin.H{
 		"success": false,
@@ -52,9 +52,17 @@ func NotFound(c *gin.Context, message string) {
 	})
 }
 
-func Conflict(c *gin.Context,message string) {
+func Conflict(c *gin.Context, message string) {
 	c.JSON(StatusConflict, gin.H{
 		"success": false,
+		"error":   message,
+	})
+}
+
+func Forbidden(c *gin.Context, data interface{}, message string) {
+	c.JSON(StatusForbidden, gin.H{
+		"success": false,
+		"data":    data,
 		"error":   message,
 	})
 }

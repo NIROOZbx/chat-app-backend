@@ -7,7 +7,7 @@ import (
 	"chat-app/internal/shared/pubsub"
 	"context"
 	"encoding/json"
-	
+
 	"strconv"
 	"time"
 
@@ -59,6 +59,12 @@ func (s *messageService) SendMessage(ctx context.Context, roomID, userID int, us
 		MessageID: saved.ID,
 		SentAt:    saved.CreatedAt,
 	})
+	
+	pattern := "room:" + strconv.Itoa(roomID) + ":p:*"
+	iter := s.redis.Scan(ctx, 0, pattern, 0).Iterator()
+	for iter.Next(ctx) {
+		s.redis.Del(ctx, iter.Val())
+	}
 
 	return resp, nil
 }
@@ -72,7 +78,7 @@ func (s *messageService) GetMessages(ctx context.Context, roomID, limit, page in
 		if unmarshalErr := json.Unmarshal([]byte(bytes), &cachedData); unmarshalErr == nil {
 			return cachedData, nil
 		}
-		
+
 	}
 
 	offset := (page - 1) * limit
@@ -80,7 +86,6 @@ func (s *messageService) GetMessages(ctx context.Context, roomID, limit, page in
 	if err != nil {
 		return nil, err
 	}
-
 
 	var resp []dtos.MessageResponse
 	for _, m := range messages {

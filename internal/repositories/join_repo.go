@@ -14,7 +14,22 @@ type JoinRoomRepo interface {
 	GetUserByID(userID int) (*models.User, error)
 	IsRoomMember(userID, roomID int) (bool, error)
 	LeaveRoom(roomID, userID int) error
+	GetRoomByInviteCode(inviteCode string) (*models.Room, error)
 	GetUserRole(roomID, userID int) (string, error)
+}
+
+func (s *supabaseRepo) GetRoomByInviteCode(inviteCode string) (*models.Room, error) {
+	var room models.Room
+
+	query := `SELECT * FROM room where invite_code = $1`
+
+	err := s.db.Get(&room, query, inviteCode)
+	if err != nil {
+
+		return nil, err
+	}
+
+	return &room, nil
 }
 
 func (s *supabaseRepo) GetUserRole(roomID, userID int) (string, error) {

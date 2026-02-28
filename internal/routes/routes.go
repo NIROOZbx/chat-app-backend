@@ -10,12 +10,12 @@ import (
 
 func SetupRoutes(r *gin.Engine, roomHandle *handlers.RoomHandler, joinHandle *handlers.JoinRoomHandler, userHandle *handlers.CreateUser, store *session.Store, ws *handlers.WSHandler, messageHandler *handlers.MessageHandler) {
 
-r.GET("/", func(c *gin.Context) {
-    c.JSON(200, gin.H{
-        "status":  "healthy",
-        "message": "Chat Backend is running",
-    })
-})
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status":  "healthy",
+			"message": "Chat Backend is running",
+		})
+	})
 	v1 := r.Group("/api/v1")
 	{
 
@@ -26,6 +26,7 @@ r.GET("/", func(c *gin.Context) {
 		{
 			protected := room.Group("", middleware.SessionMiddleware(store))
 			protected.POST("/join/:id", joinHandle.JoinRoom)
+			protected.POST("/join/private/:inviteCode", joinHandle.JoinPrivateGroup)
 			protected.DELETE("/leave/:id", joinHandle.LeaveRoom)
 			protected.POST("/", roomHandle.CreateRoom)
 			protected.GET("/joined", roomHandle.GetJoinedRooms)
@@ -35,7 +36,7 @@ r.GET("/", func(c *gin.Context) {
 
 			room.GET("/", roomHandle.GetAllRooms)
 			room.GET("/:id", roomHandle.GetSingleRoom)
-			room.DELETE("/:id", roomHandle.DeleteRoom)
+			protected.DELETE("/:id", roomHandle.DeleteRoom)
 		}
 
 	}

@@ -12,7 +12,7 @@ type Room struct {
 	IsPrivate   bool      `db:"is_private"`
 	InviteCode  *string   `db:"invite_code"`
 	Image       string    `db:"image"`
-	MaxMembers  int       `db:"max_members" `
+	MaxMembers  int       `db:"max_members"`
 	CreatedAt   time.Time `db:"created_at"`
-	UpdatedAt   time.Time `db:"updated_at" `
+	UpdatedAt   time.Time `db:"updated_at"`
 }

@@ -64,6 +64,25 @@ func (s *JoinRoomHandler) LeaveRoom(c *gin.Context) {
 
 }
 
+func (s *JoinRoomHandler)JoinPrivateGroup(c *gin.Context){
+
+	userID := c.GetInt("user_id")
+	
+
+	id:=c.Param("inviteCode")
+
+	room,err:=s.Service.JoinPrivateRoom(c.Request.Context(),userID,id)
+	if err!=nil{
+		s.Log.Error("join error %v",err)
+		response.BadRequest(c,nil,"failed to join")
+		return
+	}
+
+	response.OK(c,"room joined successfully",room)
+
+
+}
+
 func NewJoinRoomHandler(srv services.JoinRoomService, log *logger.Logger, cfg config.CloudinaryConfig, store *session.Store) *JoinRoomHandler {
 
 

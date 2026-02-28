@@ -128,19 +128,29 @@ func (r *RoomHandler) GetSingleRoom(c *gin.Context) {
 }
 
 func (r *RoomHandler) DeleteRoom(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		response.BadRequest(c, nil, "Invalid room ID format")
+	id, ok := utils.ParseIDParam(c, "id")
+	if !ok {
 		return
 	}
 
-	if err := r.Service.DeleteRoom(id); err != nil {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		response.InternalServerError(c)
+		return
+	}
+
+	if err := r.Service.DeleteRoom(id, userID.(int)); err != nil {
 		if err == sql.ErrNoRows {
 			r.Log.Error("room not found %v", err.Error())
 			response.NotFound(c, "Room not found")
 			return
 		}
+
+		if err.Error() == "unauthorized: only admins can delete rooms" {
+			response.Forbidden(c, nil, err.Error())
+			return
+		}
+
 		r.Log.Error("DeleteRoom: Failed to delete ID %d: %v", id, err)
 		response.InternalServerError(c)
 		return

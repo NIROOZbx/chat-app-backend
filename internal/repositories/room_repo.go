@@ -16,6 +16,7 @@ type RoomRepository interface {
 	GetJoinedRooms(userID int) ([]models.Room, error)
 	GetRoomById(id int) (*models.Room, error)
 	DeleteRoom(id int) error
+	GetUserRole(roomID, userID int) (string, error)
 }
 
 func NewRoomRepo(db *sqlx.DB) RoomRepository {
@@ -29,8 +30,8 @@ func (s *supabaseRepo) CreateRoom(room *models.Room, creatorID int) error {
 	}
 	defer tx.Rollback()
 
-	query := `INSERT INTO room (name, max_members, topic, description,image)
-	VALUES ($1, $2, $3, $4,$5) RETURNING *;`
+	query := `INSERT INTO room (name, max_members, topic, description,image, is_private, invite_code)
+	VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;`
 
 	err = tx.Get(room, query,
 		room.Name,
@@ -38,6 +39,8 @@ func (s *supabaseRepo) CreateRoom(room *models.Room, creatorID int) error {
 		room.Topic,
 		room.Description,
 		room.Image,
+		room.IsPrivate,
+		room.InviteCode,
 	)
 	if err != nil {
 		return err
