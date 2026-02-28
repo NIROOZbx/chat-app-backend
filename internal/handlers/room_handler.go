@@ -87,7 +87,7 @@ func (r *RoomHandler) GetJoinedRooms(c *gin.Context) {
 		return
 	}
 
-	rooms, err := r.Service.GetJoinedRooms(userID.(int))
+	rooms, err := r.Service.GetJoinedRooms(c.Request.Context(),userID.(int))
 	if err != nil {
 		r.Log.Error("GetJoinedRooms: Failed to fetch: %v", err)
 		response.InternalServerError(c)

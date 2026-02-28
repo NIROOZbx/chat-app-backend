@@ -18,7 +18,7 @@ import (
 type Roomservice interface {
 	CreateRoom(ctx context.Context, req request.CreateRoomRequest, creatorID int, img string) (*dtos.RoomResponse, error)
 	GetAllRooms(ctx context.Context) ([]models.Room, error)
-	GetJoinedRooms(userID int) ([]models.Room, error)
+	GetJoinedRooms(ctx context.Context,userID int)([]models.Room, error)
 	GetSingleRoom(id int) (*models.Room, error)
 	DeleteRoom(roomID, userID int) error
 	GetOnlineCount(roomID int) int
@@ -70,31 +70,30 @@ func (s *roomService) CreateRoom(ctx context.Context, req request.CreateRoomRequ
 	return dtos.MapToRoomResponse(room, link), nil
 }
 
-func (r *roomService) GetAllRooms(ctx context.Context) ([]models.Room, error) {
-
-	rooms, err := r.Repo.GetAllRooms()
-
-	if err!=nil{
-		return nil,err
+func (s *roomService) GetAllRooms(ctx context.Context) ([]models.Room, error) {
+	rooms, err := s.Repo.GetAllRooms()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get rooms: %w", err)
 	}
 
-	for i,val:=range rooms{
-		key := fmt.Sprintf("room:%d:member_count", val.ID)
-		data,err:=r.Redis.Get(ctx,key).Int64()
-
-		if err==redis.Nil{
-			data=0
-		}else if err!=nil{
-			return nil, fmt.Errorf("failed to get member count: %w", err)
-		}
-		rooms[i].MemberCount=data
+	if err := s.enrichWithMemberCount(ctx, rooms); err != nil {
+		return nil, err
 	}
 
-	return rooms,nil
+	return rooms, nil
 }
 
-func (s *roomService) GetJoinedRooms(userID int) ([]models.Room, error) {
-	return s.Repo.GetJoinedRooms(userID)
+func (s *roomService) GetJoinedRooms(ctx context.Context, userID int) ([]models.Room, error) {
+	rooms, err := s.Repo.GetJoinedRooms(userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get joined rooms: %w", err)
+	}
+
+	if err := s.enrichWithMemberCount(ctx, rooms); err != nil {
+		return nil, err
+	}
+
+	return rooms, nil
 }
 
 func (r *roomService) GetSingleRoom(id int) (*models.Room, error) {
@@ -122,6 +121,19 @@ func (r *roomService) GetUserRole(roomID, userID int) (string, error) {
 	return r.Repo.GetUserRole(roomID, userID)
 }
 
+func (s *roomService) enrichWithMemberCount(ctx context.Context, rooms []models.Room) error {
+	for i, val := range rooms {
+		key := fmt.Sprintf("room:%d:member_count", val.ID)
+		count, err := s.Redis.Get(ctx, key).Int64()
+		if err == redis.Nil {
+			count = 0
+		} else if err != nil {
+			return fmt.Errorf("failed to get member count: %w", err)
+		}
+		rooms[i].MemberCount = count
+	}
+	return nil
+}
 func NewRoomService(repo repositories.RoomRepository, hub *hub.Manager,redis *redis.Client) Roomservice {
 	return &roomService{Repo: repo, Hub: hub,Redis: redis}
 }
