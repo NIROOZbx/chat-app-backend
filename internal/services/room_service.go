@@ -20,6 +20,7 @@ type Roomservice interface {
 	GetSingleRoom(id int) (*models.Room, error)
 	DeleteRoom(roomID, userID int) error
 	GetOnlineCount(roomID int) int
+	GetUserRole(roomID, userID int) (string, error)
 }
 
 type roomService struct {
@@ -91,6 +92,11 @@ func (r *roomService) DeleteRoom(roomID, userID int) error {
 func (s *roomService) GetOnlineCount(roomID int) int {
 	return s.Hub.GetOnlineCount(roomID)
 }
+
+func (r *roomService) GetUserRole(roomID, userID int) (string, error) {
+	return r.Repo.GetUserRole(roomID, userID)
+}
+
 func NewRoomService(repo repositories.RoomRepository, hub *hub.Manager) Roomservice {
 	return &roomService{Repo: repo, Hub: hub}
 }

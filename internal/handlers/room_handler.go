@@ -8,7 +8,6 @@ import (
 	"chat-app/internal/shared/response"
 	"chat-app/internal/shared/utils"
 	"database/sql"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -99,11 +98,22 @@ func (r *RoomHandler) GetJoinedRooms(c *gin.Context) {
 }
 
 func (r *RoomHandler) GetSingleRoom(c *gin.Context) {
+	id, ok := utils.ParseIDParam(c, "id")
+	if !ok {
+		return
+	}
 
-	idStr := c.Param("id")
-	id, err := strconv.Atoi(idStr)
+	userID, exists := c.Get("user_id")
+	if !exists {
+		response.InternalServerError(c)
+		return
+	}
+	uid := userID.(int)
+
+	fetchedRole, err := r.Service.GetUserRole(id, uid)
 	if err != nil {
-		response.BadRequest(c, nil, "Invalid room ID format")
+		r.Log.Error("User %d access denied to room %d: %v", uid, id, err)
+		response.Forbidden(c, nil, "Access denied: you are not a member of this room")
 		return
 	}
 
@@ -120,11 +130,12 @@ func (r *RoomHandler) GetSingleRoom(c *gin.Context) {
 	}
 
 	onlineCount := r.Service.GetOnlineCount(id)
+
 	response.OK(c, response.SuccessMsgFetched, gin.H{
 		"room":         room,
 		"online_count": onlineCount,
+		"user_role":    fetchedRole,
 	})
-
 }
 
 func (r *RoomHandler) DeleteRoom(c *gin.Context) {

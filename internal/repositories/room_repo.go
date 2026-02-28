@@ -16,6 +16,7 @@ type RoomRepository interface {
 	GetJoinedRooms(userID int) ([]models.Room, error)
 	GetRoomById(id int) (*models.Room, error)
 	DeleteRoom(id int) error
+	IsRoomMember(userID, roomID int) (bool, error)
 	GetUserRole(roomID, userID int) (string, error)
 }
 
@@ -88,3 +89,4 @@ func (s *supabaseRepo) DeleteRoom(id int) error {
 	_, err := s.db.Exec(query, id)
 	return err
 }
+
