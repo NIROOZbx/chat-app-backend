@@ -51,7 +51,7 @@ func StartUp(cfg *config.Config) *App {
 	manager := hub.NewManager(client)
 
 	roomRepo := repositories.NewRoomRepo(db)
-	roomService := services.NewRoomService(roomRepo, manager)
+	roomService := services.NewRoomService(roomRepo, manager,client)
 	roomHandler := handlers.NewRoomHandler(roomService, l, cfg.Cloudinary)
 
 	messageRepo := repositories.NewMessageRepo(db)
@@ -62,7 +62,7 @@ func StartUp(cfg *config.Config) *App {
 	wsHandler := handlers.NewWSConn(wsService, l, messageService)
 
 	joinRepo := repositories.NewJoinRoomRepository(db)
-	joinService := services.NewJoinRoomService(joinRepo, publisher)
+	joinService := services.NewJoinRoomService(joinRepo, publisher,client)
 	sessionHandle := session.CreateStore(client)
 	joinHandler := handlers.NewJoinRoomHandler(joinService, l, cfg.Cloudinary, sessionHandle)
 

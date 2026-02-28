@@ -6,6 +6,9 @@ import (
 	"chat-app/internal/shared/pubsub"
 	"context"
 	"errors"
+	"fmt"
+
+	"github.com/redis/go-redis/v9"
 )
 
 type JoinRoomService interface {
@@ -15,8 +18,9 @@ type JoinRoomService interface {
 }
 
 type joinRoom struct {
-	repo repositories.JoinRoomRepo
-	pub  *pubsub.PubSub
+	repo  repositories.JoinRoomRepo
+	pub   *pubsub.PubSub
+	redis *redis.Client
 }
 
 func (s *joinRoom) JoinRoom(ctx context.Context, userID, roomID int) (*dtos.JoinRoomResponse, error) {
@@ -63,6 +67,8 @@ func (s *joinRoom) JoinRoom(ctx context.Context, userID, roomID int) (*dtos.Join
 	if err != nil {
 		return nil, err
 	}
+	key := fmt.Sprintf("room:%d:member_count", roomID)
+	s.redis.Incr(ctx, key)
 
 	data := dtos.MapToJoinResponse(user, room)
 
@@ -99,13 +105,17 @@ func (s *joinRoom) LeaveRoom(ctx context.Context, userName string, roomID, userI
 		return err
 	}
 
+	key := fmt.Sprintf("room:%d:member_count", roomID)
+	s.redis.Decr(ctx, key)
+
 	return nil
 
 }
 
-func NewJoinRoomService(repo repositories.JoinRoomRepo, pub *pubsub.PubSub) JoinRoomService {
+func NewJoinRoomService(repo repositories.JoinRoomRepo, pub *pubsub.PubSub, redis *redis.Client) JoinRoomService {
 	return &joinRoom{
-		repo: repo,
-		pub:  pub,
+		repo:  repo,
+		pub:   pub,
+		redis: redis,
 	}
 }

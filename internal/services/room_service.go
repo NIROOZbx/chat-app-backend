@@ -11,11 +11,13 @@ import (
 	"errors"
 	"fmt"
 	"os"
+
+	"github.com/redis/go-redis/v9"
 )
 
 type Roomservice interface {
 	CreateRoom(ctx context.Context, req request.CreateRoomRequest, creatorID int, img string) (*dtos.RoomResponse, error)
-	GetAllRooms() ([]models.Room, error)
+	GetAllRooms(ctx context.Context) ([]models.Room, error)
 	GetJoinedRooms(userID int) ([]models.Room, error)
 	GetSingleRoom(id int) (*models.Room, error)
 	DeleteRoom(roomID, userID int) error
@@ -26,6 +28,7 @@ type Roomservice interface {
 type roomService struct {
 	Repo repositories.RoomRepository
 	Hub  *hub.Manager
+	Redis *redis.Client
 }
 
 func (s *roomService) CreateRoom(ctx context.Context, req request.CreateRoomRequest, creatorID int, img string) (*dtos.RoomResponse, error) {
@@ -61,11 +64,33 @@ func (s *roomService) CreateRoom(ctx context.Context, req request.CreateRoomRequ
 		return nil, err
 	}
 
+	key := fmt.Sprintf("room:%d:member_count", room.ID)
+    s.Redis.Set(ctx, key, 1, 0) 
+
 	return dtos.MapToRoomResponse(room, link), nil
 }
 
-func (r *roomService) GetAllRooms() ([]models.Room, error) {
-	return r.Repo.GetAllRooms()
+func (r *roomService) GetAllRooms(ctx context.Context) ([]models.Room, error) {
+
+	rooms, err := r.Repo.GetAllRooms()
+
+	if err!=nil{
+		return nil,err
+	}
+
+	for i,val:=range rooms{
+		key := fmt.Sprintf("room:%d:member_count", val.ID)
+		data,err:=r.Redis.Get(ctx,key).Int64()
+
+		if err==redis.Nil{
+			data=0
+		}else if err!=nil{
+			return nil, fmt.Errorf("failed to get member count: %w", err)
+		}
+		rooms[i].MemberCount=data
+	}
+
+	return rooms,nil
 }
 
 func (s *roomService) GetJoinedRooms(userID int) ([]models.Room, error) {
@@ -97,6 +122,6 @@ func (r *roomService) GetUserRole(roomID, userID int) (string, error) {
 	return r.Repo.GetUserRole(roomID, userID)
 }
 
-func NewRoomService(repo repositories.RoomRepository, hub *hub.Manager) Roomservice {
-	return &roomService{Repo: repo, Hub: hub}
+func NewRoomService(repo repositories.RoomRepository, hub *hub.Manager,redis *redis.Client) Roomservice {
+	return &roomService{Repo: repo, Hub: hub,Redis: redis}
 }

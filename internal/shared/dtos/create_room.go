@@ -13,6 +13,7 @@ type RoomResponse struct {
 	Image       string  `json:"image"`
 	ShareLink   string  `json:"share_link"`
 	CreatedAt   string  `json:"created_at"`
+	MemberCount int `json:"member_count"`
 }
 
 func MapToRoomResponse(room *models.Room, shareLink string) *RoomResponse {

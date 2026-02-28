@@ -69,7 +69,7 @@ func (r *RoomHandler) CreateRoom(c *gin.Context) {
 
 func (r *RoomHandler) GetAllRooms(c *gin.Context) {
 
-	rooms, err := r.Service.GetAllRooms()
+	rooms, err := r.Service.GetAllRooms(c.Request.Context())
 
 	if err != nil {
 		r.Log.Error("GetAllRooms: Failed to fetch: %v", err)

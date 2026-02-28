@@ -12,6 +12,8 @@ type Room struct {
 	IsPrivate   bool      `db:"is_private"`
 	InviteCode  *string   `db:"invite_code"`
 	Image       string    `db:"image"`
+
+	MemberCount int64       `db:"-"`
 	MaxMembers  int       `db:"max_members"`
 	CreatedAt   time.Time `db:"created_at"`
 	UpdatedAt   time.Time `db:"updated_at"`

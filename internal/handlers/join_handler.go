@@ -7,6 +7,7 @@ import (
 	"chat-app/internal/shared/response"
 	"chat-app/internal/shared/session"
 	"chat-app/internal/shared/utils"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -33,6 +34,8 @@ func (s *JoinRoomHandler) JoinRoom(c *gin.Context) {
 		response.InternalServerError(c)
 		return
 	}
+
+	
 	response.OK(c, "joined room successfully", resp)
 
 }
