@@ -35,7 +35,7 @@ func SetupRoutes(r *gin.Engine, roomHandle *handlers.RoomHandler, joinHandle *ha
 			protected.GET("/:id/messages", messageHandler.GetMessages)
 
 			room.GET("/", roomHandle.GetAllRooms)
-			room.GET("/:id", roomHandle.GetSingleRoom)
+			protected.GET("/:id", roomHandle.GetSingleRoom)
 			protected.DELETE("/:id", roomHandle.DeleteRoom)
 		}
 
