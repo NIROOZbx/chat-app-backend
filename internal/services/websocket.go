@@ -80,13 +80,7 @@ func (ws *wsService) broadcast(room *hub.Room, roomID int) {
 			if !ok {
 				return
 			}
-			for userID, conn := range room.Snapshot() {
-				if err := conn.WriteMessage(websocket.TextMessage, msg); err != nil {
-					ws.log.Error("write error user %d: %v", userID, err)
-					conn.Close()
-					room.Remove(userID, roomID, ws.manager)
-				}
-			}
+			room.Broadcast(msg)
 		case <-room.Done():
 			return
 

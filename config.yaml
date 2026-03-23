@@ -1,11 +1,11 @@
 server:
-  port: "8080"
+  port: "8081"
   timeout: "5s"
   mode: "debug"
 
 database:
   dsn: "${DATABASE_URL}"
-  max_open_conns: 20
+  max_open_conns: 15
   max_idle_conns: 10
   conn_max_lifetime: "30m"
   conn_max_idle_time: "5m"

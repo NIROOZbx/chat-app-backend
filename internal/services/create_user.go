@@ -10,10 +10,15 @@ type CreateService interface {
 	CreateUser(req request.CreateUser, img string) (*models.User, error)
 	CheckUser(name string) (*models.User, error)
 	GetMe(id int) (*models.User, error)
+	UpdateUserImage(userID int, imgURL string) error
 }
 
 type userService struct {
 	Repo repositories.UserRepo
+}
+
+func (s *userService) UpdateUserImage(userID int, imgURL string) error {
+return s.Repo.UpdateProfileImage(userID,imgURL)
 }
 
 func (s *userService) CreateUser(req request.CreateUser, img string) (*models.User, error) {

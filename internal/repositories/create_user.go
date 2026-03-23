@@ -12,10 +12,17 @@ type UserRepo interface {
 	CreateUser(m *models.User) (*models.User, error)
 	GetUserByName(name string) (*models.User, error)
 	GetUserByID(id int) (*models.User, error)
+	UpdateProfileImage(userID int, url string) error
 }
 
 func NewUserRepository(db *sqlx.DB) UserRepo {
 	return &supabaseRepo{db: db}
+}
+
+func (s *supabaseRepo) UpdateProfileImage(userID int, url string) error {
+    query := `UPDATE users SET profile_image = $1 WHERE id = $2;`
+    _, err := s.db.Exec(query, url, userID)
+    return err
 }
 
 func (s *supabaseRepo) CreateUser(m *models.User) (*models.User, error) {

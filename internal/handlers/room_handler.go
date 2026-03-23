@@ -45,11 +45,14 @@ func (r *RoomHandler) CreateRoom(c *gin.Context) {
 		return
 	}
 
-	imgURL, err := r.Cld.UploadToCloudinary(c.Request.Context(), req.Image)
-
-	if err != nil {
-		response.BadRequest(c, nil, "failed to upload image")
-		return
+	var imgURL string
+	if req.Image != nil {
+		var err error
+		imgURL, err = r.Cld.UploadToCloudinary(c.Request.Context(), req.Image)
+		if err != nil {
+			response.BadRequest(c, nil, "failed to upload image")
+			return
+		}
 	}
 
 	data, err := r.Service.CreateRoom(c.Request.Context(), req, userID.(int), imgURL)

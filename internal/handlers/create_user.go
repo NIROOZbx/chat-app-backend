@@ -8,6 +8,8 @@ import (
 	"chat-app/internal/shared/response"
 	"chat-app/internal/shared/session"
 	"chat-app/internal/shared/utils"
+	"context"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"time"
@@ -52,13 +54,14 @@ func (s *CreateUser) CreateUserSession(c *gin.Context) {
 
 	newSessionID, err := s.Redis.CreateSession(c.Request.Context(), data)
 	if err != nil {
-		s.Log.Error("failed to create session: %v", err)
+		s.Log.Error("REDIS ERROR at line 103: %v | Context Err: %v", err, c.Request.Context().Err())
 		response.InternalServerError(c)
 		return
 	}
 
 	c.SetSameSite(http.SameSiteNoneMode)
-	c.SetCookie("session_id", newSessionID, int(24*time.Hour.Seconds()), "/", "", true, true)
+	secure := c.Request.TLS != nil
+	c.SetCookie("session_id", newSessionID, int(24*time.Hour.Seconds()), "/", "", secure, true)
 
 	response.Created(c, "created user successfully", data)
 
@@ -73,23 +76,17 @@ func (s *CreateUser) CreateUser(c *gin.Context) {
 		return
 	}
 
-	var imageURL string
-	if req.ProfileImage != nil {
-		imgData, err := s.ImageUpload.UploadToCloudinary(c.Request.Context(), req.ProfileImage)
-		if err != nil {
-			s.Log.Error("upload error %v", err)
-			response.InternalServerError(c)
-			return
-		}
-		imageURL = imgData
-	}
-
-	resp, err := s.Service.CreateUser(req, imageURL)
-
+	
+	resp, err := s.Service.CreateUser(req, "")
+	
 	if err != nil {
 		s.Log.Error("creating user failed: %v", err)
 		response.BadRequest(c, nil, "creating user failed")
 		return
+	}
+
+	if req.ProfileImage!=nil{
+		go s.handleAsyncImageUpload(resp.ID, req.ProfileImage)
 	}
 
 	data := &session.Data{
@@ -104,11 +101,25 @@ func (s *CreateUser) CreateUser(c *gin.Context) {
 		return
 	}
 	c.SetSameSite(http.SameSiteNoneMode)
-
-	c.SetCookie("session_id", newSessionID, int(24*time.Hour.Seconds()), "/", "", true, true)
+	secure := c.Request.TLS != nil
+	c.SetCookie("session_id", newSessionID, int(24*time.Hour.Seconds()), "/", "", secure, true)
 
 	response.Created(c, "created user successfully", data)
 
+}
+
+func (s *CreateUser) handleAsyncImageUpload(userID int, file *multipart.FileHeader) {
+    ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+    defer cancel()
+
+    imgData, err := s.ImageUpload.UploadToCloudinary(ctx, file)
+    if err != nil {
+        s.Log.Error("Background Upload Failed for User %d: %v", userID, err)
+        return
+    }
+    if err := s.Service.UpdateUserImage(userID, imgData); err != nil {
+        s.Log.Error("Failed to update user %d with image URL: %v", userID, err)
+    }
 }
 
 func (s *CreateUser) GetMe(c *gin.Context) {
@@ -143,4 +154,11 @@ func NewUserHandler(srv services.CreateService, log *logger.Logger, redis *sessi
 		Redis:       redis,
 		ImageUpload: imgUploader,
 	}
+}
+
+
+func (s *CreateUser) setSessionCookie(c *gin.Context, sessionID string) {
+    c.SetSameSite(http.SameSiteNoneMode)
+    secure := c.Request.TLS != nil
+    c.SetCookie("session_id", sessionID, int(24*time.Hour.Seconds()), "/", "", secure, true)
 }

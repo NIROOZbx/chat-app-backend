@@ -22,7 +22,7 @@ type Room struct {
 type Manager struct {
 	redis  *redis.Client
 	rooms  map[int]*Room
-	hubsMu sync.Mutex
+	hubsMu sync.RWMutex
 }
 
 func NewManager(redis *redis.Client) *Manager {
@@ -33,12 +33,16 @@ func NewManager(redis *redis.Client) *Manager {
 }
 
 func (m *Manager) GetOrCreate(roomID int) (*Room, bool) {
-	m.hubsMu.Lock()
-	defer m.hubsMu.Unlock()
+	m.hubsMu.RLock()
+	room, exists := m.rooms[roomID]
+	m.hubsMu.RUnlock()
 
-	if room, exists := m.rooms[roomID]; exists {
+	if exists {
 		return room, false
 	}
+
+	m.hubsMu.Lock()
+    defer m.hubsMu.Unlock()
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -95,19 +99,22 @@ func (m *Manager) Delete(roomID int) {
 
 }
 
-func (r *Room) Snapshot() map[int]*websocket.Conn {
+func (r *Room)Broadcast(msg []byte){
+r.mu.Lock()
+    defer r.mu.Unlock()
 
-	r.mu.Lock()
-	defer r.mu.Unlock()
+	for userID,conn:=range r.conns{
+		conn.SetWriteDeadline(time.Now().Add(1 * time.Second))
+		err:=conn.WriteMessage(websocket.TextMessage,msg)
 
-	newMap := make(map[int]*websocket.Conn, len(r.conns))
-	for id, conn := range r.conns {
-
-		newMap[id] = conn
+		if err!=nil{
+		   conn.Close()
+		   delete(r.conns,userID)
+		}
 	}
 
-	return newMap
 }
+
 
 func (r *Room) Channel() chan []byte     { return r.ch }
 func (r *Room) Context() context.Context { return r.ctx }
@@ -120,9 +127,9 @@ func (r *Room) GetOnlineCount() int {
 }
 
 func (m *Manager) GetOnlineCount(roomID int) int {
-	m.hubsMu.Lock()
+	m.hubsMu.RLock()
 	room, exists := m.rooms[roomID]
-	m.hubsMu.Unlock()
+	m.hubsMu.RUnlock()
 
 	if !exists {
 		return 0

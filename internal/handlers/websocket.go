@@ -8,6 +8,7 @@ import (
 	"chat-app/internal/shared/utils"
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -16,6 +17,7 @@ import (
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
+	HandshakeTimeout: 5 * time.Second,
 	CheckOrigin:     func(r *http.Request) bool { return true },
 }
 

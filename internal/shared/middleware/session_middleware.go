@@ -34,7 +34,8 @@ func SessionMiddleware(store *session.Store) gin.HandlerFunc {
 		}
 		if data == nil {
 			c.SetSameSite(http.SameSiteNoneMode)
-			c.SetCookie("session_id", "", -1, "/", "", true, true) // clear stale cookie
+			secure := c.Request.TLS != nil
+			c.SetCookie("session_id", "", -1, "/", "", secure, true) // clear stale cookie
 			response.BadRequest(c, nil, "Session expired — join again")
 			c.Abort()
 			return

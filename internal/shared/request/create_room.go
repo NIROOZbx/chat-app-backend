@@ -8,5 +8,5 @@ type CreateRoomRequest struct {
 	Topic       string `form:"topic" binding:"required"`
 	IsPrivate   bool   `form:"is_private"`
 	MaxMembers  int    `form:"max_members" binding:"required"`
-	Image       *multipart.FileHeader `form:"image" binding:"required"`
+	Image       *multipart.FileHeader `form:"image"`
 }

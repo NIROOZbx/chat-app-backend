@@ -31,10 +31,11 @@ func (i *ImageUpload) UploadToCloudinary(ctx context.Context, imageData *multipa
 	})
 
 	if err != nil {
-		i.log.Error("Failed to upload image")
+		i.log.Error("Failed to upload image: %v", err)
+		return "", err
 	}
 
-	i.log.Info("image uploaded %v",resp.SecureURL)
+	i.log.Info("image uploaded %v", resp.SecureURL)
 
 	return resp.SecureURL, nil
 
@@ -44,9 +45,9 @@ func NewImageUpload(cfg config.CloudinaryConfig, log *logger.Logger) (*ImageUplo
 	cloud, err := cloudinary.NewFromURL(cfg.URL)
 
 	if err != nil {
-		log.Error("Cloud connection failed %v",err)
-			return nil, err
-		
+		log.Error("Cloud connection failed %v", err)
+		return nil, err
+
 	}
 	return &ImageUpload{cloud: cloud, log: log}, nil
 }
