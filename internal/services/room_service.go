@@ -18,7 +18,7 @@ import (
 type Roomservice interface {
 	CreateRoom(ctx context.Context, req request.CreateRoomRequest, creatorID int, img string) (*dtos.RoomResponse, error)
 	GetAllRooms(ctx context.Context) ([]models.Room, error)
-	GetJoinedRooms(ctx context.Context,userID int)([]models.Room, error)
+	GetJoinedRooms(ctx context.Context, userID int) ([]models.Room, error)
 	GetSingleRoom(id int) (*models.Room, error)
 	DeleteRoom(roomID, userID int) error
 	GetOnlineCount(roomID int) int
@@ -26,8 +26,8 @@ type Roomservice interface {
 }
 
 type roomService struct {
-	Repo repositories.RoomRepository
-	Hub  *hub.Manager
+	Repo  repositories.RoomRepository
+	Hub   *hub.Manager
 	Redis *redis.Client
 }
 
@@ -65,7 +65,7 @@ func (s *roomService) CreateRoom(ctx context.Context, req request.CreateRoomRequ
 	}
 
 	key := fmt.Sprintf("room:%d:member_count", room.ID)
-    s.Redis.Set(ctx, key, 1, 0) 
+	s.Redis.Set(ctx, key, 1, 0)
 
 	return dtos.MapToRoomResponse(room, link), nil
 }
@@ -122,18 +122,38 @@ func (r *roomService) GetUserRole(roomID, userID int) (string, error) {
 }
 
 func (s *roomService) enrichWithMemberCount(ctx context.Context, rooms []models.Room) error {
-	for i, val := range rooms {
-		key := fmt.Sprintf("room:%d:member_count", val.ID)
-		count, err := s.Redis.Get(ctx, key).Int64()
+
+	if len(rooms) == 0 {
+		return nil
+	}
+
+	pipe := s.Redis.Pipeline()
+	cmds := make([]*redis.StringCmd, len(rooms))
+
+	for i, room := range rooms {
+		key := fmt.Sprintf("room:%d:member_count", room.ID)
+		cmds[i] = pipe.Get(ctx, key)
+	}
+
+	_, err := pipe.Exec(ctx)
+
+	if err != nil && err != redis.Nil {
+		return fmt.Errorf("failed to execute redis pipeline: %w", err)
+	}
+
+	for i, cmd := range cmds {
+		count, err := cmd.Int64()
+
 		if err == redis.Nil {
-			count = 0
+			rooms[i].MemberCount = 0
 		} else if err != nil {
-			return fmt.Errorf("failed to get member count: %w", err)
+			return fmt.Errorf("failed to parse count for room %d: %w", rooms[i].ID, err)
+		} else {
+			rooms[i].MemberCount = count
 		}
-		rooms[i].MemberCount = count
 	}
 	return nil
 }
-func NewRoomService(repo repositories.RoomRepository, hub *hub.Manager,redis *redis.Client) Roomservice {
-	return &roomService{Repo: repo, Hub: hub,Redis: redis}
+func NewRoomService(repo repositories.RoomRepository, hub *hub.Manager, redis *redis.Client) Roomservice {
+	return &roomService{Repo: repo, Hub: hub, Redis: redis}
 }

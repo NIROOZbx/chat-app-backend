@@ -77,6 +77,7 @@ func (r *RoomHandler) GetAllRooms(c *gin.Context) {
 	if err != nil {
 		r.Log.Error("GetAllRooms: Failed to fetch: %v", err)
 		response.InternalServerError(c)
+		return
 	}
 
 	response.OK(c, response.SuccessMsgFetched, rooms)
