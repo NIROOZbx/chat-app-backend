@@ -155,5 +155,5 @@ func NewUserHandler(srv services.CreateService, log *logger.Logger, redis *sessi
 func (s *CreateUser) setSessionCookie(c *gin.Context, sessionID string) {
     c.SetSameSite(http.SameSiteNoneMode)
     // secure := c.Request.TLS != nil
-    c.SetCookie("session_id", sessionID, int(24*time.Hour.Seconds()), "/", "", false, true)
+    c.SetCookie("session_id", sessionID, int(24*time.Hour.Seconds()), "/", "", true, true)
 }
