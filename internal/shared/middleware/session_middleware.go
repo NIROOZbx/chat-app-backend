@@ -3,7 +3,6 @@ package middleware
 import (
 	"chat-app/internal/shared/response"
 	"chat-app/internal/shared/session"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -21,7 +20,6 @@ func SessionMiddleware(store *session.Store) gin.HandlerFunc {
 
 		if err != nil || sessionID == "" {
 			response.NotFound(c, "cookie not found")
-			fmt.Println(sessionID)
 			c.Abort()
 			return
 		}

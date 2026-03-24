@@ -3,7 +3,6 @@ package repositories
 import (
 	"chat-app/internal/models"
 	"errors"
-	"fmt"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -45,7 +44,6 @@ func (s *supabaseRepo) GetUserByName(name string) (*models.User, error) {
 
 	err := s.db.Get(&data, query, name)
 	if err != nil {
-		fmt.Println(err)
 		return nil, errors.New("user was not found")
 	}
 	return &data, nil

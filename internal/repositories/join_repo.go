@@ -3,7 +3,6 @@ package repositories
 import (
 	"chat-app/internal/models"
 	"errors"
-	"fmt"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -50,7 +49,6 @@ func (s *supabaseRepo) GetUserRole(roomID, userID int) (string, error) {
 func (s *supabaseRepo) JoinRoom(userID, roomID int, role string) error {
 	query := `INSERT INTO room_members (room_id, user_id, role) VALUES ($1, $2, $3)`
 	_, err := s.db.Exec(query, roomID, userID, role)
-	fmt.Println(err)
 	return err
 }
 
@@ -69,7 +67,6 @@ func (s *supabaseRepo) IsRoomMember(userID, roomID int) (bool, error) {
 }
 
 func (s *supabaseRepo) LeaveRoom(roomID, userID int) error {
-	fmt.Println(roomID, userID)
 	query := `DELETE FROM room_members WHERE room_id = $1 AND user_id = $2`
 	result, err := s.db.Exec(query, roomID, userID)
 	if err != nil {

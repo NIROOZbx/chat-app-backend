@@ -9,6 +9,7 @@ import (
 	"chat-app/internal/shared/utils"
 	"database/sql"
 
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -134,6 +135,7 @@ func (r *RoomHandler) GetSingleRoom(c *gin.Context) {
 	}
 
 	onlineCount := r.Service.GetOnlineCount(id)
+
 
 	response.OK(c, response.SuccessMsgFetched, gin.H{
 		"room":         room,

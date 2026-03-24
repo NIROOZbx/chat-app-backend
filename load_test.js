@@ -16,6 +16,7 @@ export const options = {
     thresholds: {
         http_req_duration: ['p(95)<1000'], // Increased slightly to account for DB latency
         http_req_failed: ['rate<0.1'],
+        checks: ['rate>0.95'],
     },
 };
 
@@ -41,6 +42,10 @@ export function setup() {
         { headers: { 'Content-Type': 'application/json' } }
     );
 
+    if (authRes.status !== 201) {
+        fail(`Setup failed: AuthUser returned ${authRes.status}`);
+    }
+
     const sessionId = authRes.cookies.session_id ? authRes.cookies.session_id[0].value : null;
     if (!sessionId) fail('Setup failed: No session cookie received');
 
@@ -56,7 +61,6 @@ export function setup() {
         );
 
         if (roomRes.status === 201) {
-            // Logic check: Ensure your Go API returns the ID in the "data" or root object
             const body = JSON.parse(roomRes.body);
             const id = body.data ? body.data.id : body.id;
             if (id) roomIds.push(id);
@@ -73,15 +77,36 @@ export default function (data) {
     const username = `VU_${__VU}_${Math.floor(Math.random() * 1000)}`;
 
     // 1. Create & Auth VU
-    http.post(`${BASE_URL}/api/v1/create-user`, { user_name: username }, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
+    const createRes = http.post(
+        `${BASE_URL}/api/v1/create-user`,
+        { user_name: username },
+        { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+    );
+    const createOK = check(createRes, {
+        'create user succeeded': (r) => r.status === 201,
+    });
+    if (!createOK) {
+        return;
+    }
 
     const authRes = http.post(`${BASE_URL}/api/v1/auth-user`,
         JSON.stringify({ Name: username }),
         { headers: { 'Content-Type': 'application/json' } }
     );
+    const authOK = check(authRes, {
+        'auth user succeeded': (r) => r.status === 201,
+    });
+    if (!authOK) {
+        return;
+    }
 
     const sessionId = authRes.cookies.session_id ? authRes.cookies.session_id[0].value : null;
-    if (!sessionId) return;
+    const hasSession = check(authRes, {
+        'session cookie received': () => !!sessionId,
+    });
+    if (!hasSession) {
+        return;
+    }
 
     const cookieHeader = { session_id: sessionId };
 
@@ -90,7 +115,12 @@ export default function (data) {
 
     // 3. Join Room
     const joinRes = http.post(`${BASE_URL}/api/v1/rooms/join/${roomId}`, {}, { cookies: cookieHeader });
-    check(joinRes, { 'joined room': (r) => r.status === 200 });
+    const joinedRoom = check(joinRes, {
+        'joined room': (r) => r.status === 200,
+    });
+    if (!joinedRoom) {
+        return;
+    }
 
     // 4. WebSocket Interaction
     const wsUrl = `ws://localhost:8081/api/v1/rooms/ws/${roomId}`;

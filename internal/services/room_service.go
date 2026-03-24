@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	
 
 	"github.com/redis/go-redis/v9"
 )
@@ -75,7 +76,7 @@ func (s *roomService) GetAllRooms(ctx context.Context) ([]models.Room, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get rooms: %w", err)
 	}
-
+	
 	if err := s.enrichWithMemberCount(ctx, rooms); err != nil {
 		return nil, err
 	}

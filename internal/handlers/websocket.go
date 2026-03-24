@@ -15,10 +15,10 @@ import (
 )
 
 var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
+	ReadBufferSize:   1024,
+	WriteBufferSize:  1024,
 	HandshakeTimeout: 5 * time.Second,
-	CheckOrigin:     func(r *http.Request) bool { return true },
+	CheckOrigin:      func(r *http.Request) bool { return true },
 }
 
 type WSHandler struct {
@@ -58,6 +58,13 @@ func (ws *WSHandler) CreateWSConn(c *gin.Context) {
 		var msg request.WSMessage
 
 		if err := conn.ReadJSON(&msg); err != nil {
+			if websocket.IsUnexpectedCloseError(err,
+				websocket.CloseGoingAway,
+				websocket.CloseNormalClosure,
+				websocket.CloseNoStatusReceived) {
+
+				ws.log.Error("user %d network error: %v", userID, err)
+			}
 			ws.log.Error("user %d disconnected: %v", userID, err)
 			break
 		}
