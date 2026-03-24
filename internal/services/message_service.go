@@ -59,7 +59,7 @@ func (s *messageService) SendMessage(ctx context.Context, roomID, userID int, us
 		MessageID: saved.ID,
 		SentAt:    saved.CreatedAt,
 	})
-	
+
 	pattern := "room:" + strconv.Itoa(roomID) + ":p:*"
 	iter := s.redis.Scan(ctx, 0, pattern, 0).Iterator()
 	for iter.Next(ctx) {
@@ -78,7 +78,6 @@ func (s *messageService) GetMessages(ctx context.Context, roomID, limit, page in
 		if unmarshalErr := json.Unmarshal([]byte(bytes), &cachedData); unmarshalErr == nil {
 			return cachedData, nil
 		}
-
 	}
 
 	offset := (page - 1) * limit

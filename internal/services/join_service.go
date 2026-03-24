@@ -104,7 +104,6 @@ func (s *joinRoom) LeaveRoom(ctx context.Context, userName string, roomID, userI
 	if err != nil {
 		return err
 	}
-
 	key := fmt.Sprintf("room:%d:member_count", roomID)
 	s.redis.Decr(ctx, key)
 

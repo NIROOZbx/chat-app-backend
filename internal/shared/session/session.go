@@ -40,13 +40,10 @@ func (s *Store) Delete(ctx context.Context, sessionID string) error {
 }
 
 func (s *Store) Get(ctx context.Context, sessionID string) (*Data, error) {
-
 	val, err := s.redis.Get(ctx, keyPrefix+sessionID).Result()
-
 	if err == redis.Nil {
 		return nil, nil
 	}
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to get session: %w", err)
 	}

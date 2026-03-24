@@ -100,7 +100,7 @@ func (m *Manager) Delete(roomID int) {
 }
 
 func (r *Room)Broadcast(msg []byte){
-r.mu.Lock()
+    r.mu.Lock()
     defer r.mu.Unlock()
 
 	for userID,conn:=range r.conns{

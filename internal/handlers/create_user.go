@@ -45,6 +45,7 @@ func (s *CreateUser) CreateUserSession(c *gin.Context) {
 		}
 		s.Log.Error("error%v", err)
 		response.InternalServerError(c)
+		return
 	}
 
 	data := &session.Data{
@@ -59,11 +60,8 @@ func (s *CreateUser) CreateUserSession(c *gin.Context) {
 		return
 	}
 
-	c.SetSameSite(http.SameSiteNoneMode)
-	secure := c.Request.TLS != nil
-	c.SetCookie("session_id", newSessionID, int(24*time.Hour.Seconds()), "/", "", secure, true)
-
-	response.Created(c, "created user successfully", data)
+	s.setSessionCookie(c ,newSessionID)
+	response.Created(c, "created user session", data)
 
 }
 
@@ -100,9 +98,7 @@ func (s *CreateUser) CreateUser(c *gin.Context) {
 		response.InternalServerError(c)
 		return
 	}
-	c.SetSameSite(http.SameSiteNoneMode)
-	secure := c.Request.TLS != nil
-	c.SetCookie("session_id", newSessionID, int(24*time.Hour.Seconds()), "/", "", secure, true)
+	s.setSessionCookie(c ,newSessionID)
 
 	response.Created(c, "created user successfully", data)
 
@@ -159,6 +155,6 @@ func NewUserHandler(srv services.CreateService, log *logger.Logger, redis *sessi
 
 func (s *CreateUser) setSessionCookie(c *gin.Context, sessionID string) {
     c.SetSameSite(http.SameSiteNoneMode)
-    secure := c.Request.TLS != nil
-    c.SetCookie("session_id", sessionID, int(24*time.Hour.Seconds()), "/", "", secure, true)
+    // secure := c.Request.TLS != nil
+    c.SetCookie("session_id", sessionID, int(24*time.Hour.Seconds()), "/", "", true, true)
 }

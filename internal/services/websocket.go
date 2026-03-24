@@ -72,6 +72,7 @@ func (ws *wsService) UserTyping(ctx context.Context, userName string, userID, ro
 	}
 	ws.pubsub.Publish(ctx, roomID, payload)
 }
+
 func (ws *wsService) broadcast(room *hub.Room, roomID int) {
 
 	for {
